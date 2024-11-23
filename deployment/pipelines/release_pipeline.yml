@@ -216,4 +216,4 @@ jobs:
             appName: '$(provisionResources.appServiceWebName)'
             resourceGroupName: '$(provisionResourceGroup.resourceGroupName)'
             package: '$(Pipeline.Workspace)/drop/TestTemplate12.Api/**/*.zip'
-            runtimeStack: 'DOTNETCORE|6.0'
+            runtimeStack: 'DOTNETCORE|9.0'
