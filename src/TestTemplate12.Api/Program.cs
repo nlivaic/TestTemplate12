@@ -17,7 +17,7 @@ namespace TestTemplate12.Api
 
             try
             {
-                Log.Information("Starting up TestTemplate12."); 
+                Log.Information("Starting up TestTemplate12.");
                 CreateHostBuilder(args)
                     .Build()
                     .AddW3CTraceContextActivityLogging()

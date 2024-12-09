@@ -146,7 +146,8 @@ namespace TestTemplate12.Api
                     //        })
                     //        .AddConsoleExporter();
                     //})
-                    .StartWithHost();
+                    //.StartWithHost()
+                    ;
             }
 
             services.AddAutoMapper(Assembly.GetExecutingAssembly(), typeof(Startup).Assembly);

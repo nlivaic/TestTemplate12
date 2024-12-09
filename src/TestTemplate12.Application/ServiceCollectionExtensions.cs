@@ -1,5 +1,4 @@
-﻿using MediatR;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using TestTemplate12.Application.Pipelines;
 
 namespace TestTemplate12.Application
@@ -8,9 +7,8 @@ namespace TestTemplate12.Application
     {
         public static void AddTestTemplate12ApplicationHandlers(this IServiceCollection services)
         {
-            services.AddMediatR(typeof(ServiceCollectionExtensions).Assembly);
+            services.AddMediatR(config => config.RegisterServicesFromAssemblyContaining(typeof(ServiceCollectionExtensions)));
             services.AddPipelines();
-
             services.AddAutoMapper(typeof(ServiceCollectionExtensions).Assembly);
         }
     }

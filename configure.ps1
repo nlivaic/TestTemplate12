@@ -11,7 +11,7 @@ if (!(Test-Path ".env"))
 {
    New-Item -name ".env" -type "file" -value @"
 ApplicationInsightsConnectionString=<applicationinsights_connection_string>
-TestTemplate12DbConnection=Data Source=testtemplate12.sql;Initial Catalog=TestTemplate12Db
+TestTemplate12DbConnection=Data Source=testtemplate12.sql;Initial Catalog=TestTemplate12Db;Encrypt=False
 TestTemplate12Db_Migrations_Connection=Data Source=host.docker.internal,1433;Initial Catalog=TestTemplate12Db;Encrypt=False
 MessageBroker=<msg_broker_connection_string>
 DbUser=<db_user>

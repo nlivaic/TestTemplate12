@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestTemplate12.Data;
 
@@ -11,9 +12,11 @@ using TestTemplate12.Data;
 namespace TestTemplate12.Data.Migrations
 {
     [DbContext(typeof(TestTemplate12DbContext))]
-    partial class TestTemplate12DbContextModelSnapshot : ModelSnapshot
+    [Migration("20241201172929_InitialMigration2")]
+    partial class InitialMigration2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

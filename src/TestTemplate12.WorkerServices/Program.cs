@@ -165,7 +165,8 @@ namespace TestTemplate12.WorkerServices
                               //        })
                               //        .AddConsoleExporter();
                               //})
-                            .StartWithHost();
+                            //.StartWithHost()
+                            ;
                     }
                 });
     }
