@@ -4,15 +4,12 @@ using Azure.Monitor.OpenTelemetry.Exporter;
 using MassTransit;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 using SparkRoseDigital.Infrastructure.Caching;
-using SparkRoseDigital.Infrastructure.Logging;
 using TestTemplate12.Common.MessageBroker.Middlewares.ErrorLogging;
 using TestTemplate12.Common.MessageBroker.Middlewares.Tracing;
 using TestTemplate12.Core;
@@ -35,7 +32,6 @@ namespace TestTemplate12.WorkerServices
                 Log.Information("Starting up TestTemplate12 Worker Services.");
                 CreateHostBuilder(args)
                     .Build()
-                    .AddW3CTraceContextActivityLogging()
                     .Run();
             }
             catch (Exception ex)
@@ -59,11 +55,16 @@ namespace TestTemplate12.WorkerServices
                     var hostEnvironment = hostContext.HostingEnvironment;
                     services.AddDbContext<TestTemplate12DbContext>(options =>
                     {
-                        var connString = new SqlConnectionStringBuilder(configuration["TestTemplate12DbConnection"])
+                        var connString = new SqlConnectionStringBuilder(configuration["TestTemplate12DbConnection"]);
+                        if (hostEnvironment.IsDevelopment())
                         {
-                            UserID = configuration["DbUser"],
-                            Password = configuration["DbPassword"]
-                        };
+                            connString.UserID = configuration["DbUser"] ?? string.Empty;
+                            connString.Password = configuration["DbPassword"] ?? string.Empty;
+                        }
+                        else
+                        {
+                            connString.Authentication = SqlAuthenticationMethod.ActiveDirectoryManagedIdentity;
+                        }
                         options.UseSqlServer(connString.ConnectionString);
                         if (hostEnvironment.IsDevelopment())
                         {
@@ -131,7 +132,7 @@ namespace TestTemplate12.WorkerServices
                             o.UseBusOutbox();
                         });
                     });
-                    if (!string.IsNullOrEmpty(configuration["ApplicationInsightsConnectionString"]))
+                    if (!string.IsNullOrEmpty(configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
                     {
                         services
                             .AddOpenTelemetry()
@@ -148,7 +149,7 @@ namespace TestTemplate12.WorkerServices
                                     .AddSource("MassTransit")
                                     .AddAzureMonitorTraceExporter(o =>
                                     {
-                                        o.ConnectionString = configuration["ApplicationInsightsConnectionString"];
+                                        o.ConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
                                     });
                             })//.WithMetrics(meterProviderBuilder =>
                               //{

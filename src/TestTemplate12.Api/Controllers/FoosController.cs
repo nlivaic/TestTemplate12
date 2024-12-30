@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using TestTemplate12.Api.Helpers;
 using TestTemplate12.Application.Questions.Commands;
 using TestTemplate12.Application.Questions.Queries;
@@ -17,13 +18,16 @@ namespace TestTemplate12.Api.Controllers
     {
         private readonly ISender _sender;
         private readonly IMapper _mapper;
+        private readonly ILogger<FoosController> _logger;
 
         public FoosController(
             ISender sender,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<FoosController> logger)
         {
             _sender = sender;
             _mapper = mapper;
+            _logger = logger;
         }
 
         /// <summary>
@@ -54,6 +58,7 @@ namespace TestTemplate12.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<FooGetModel>> PostAsync([FromBody] CreateFooCommand createFooCommand)
         {
+            _logger.LogInformation("Creating foo with text: {Text}", createFooCommand.Text);
             var foo = await _sender.Send(createFooCommand);
             var response = _mapper.Map<FooGetModel>(foo);
             return CreatedAtRoute("GetFoo", new { id = foo.Id }, response);

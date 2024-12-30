@@ -109,7 +109,7 @@ namespace TestTemplate12.Api
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddLoggingScopes();
-            if (!string.IsNullOrEmpty(_configuration["ApplicationInsightsConnectionString"]))
+            if (!string.IsNullOrEmpty(_configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
             {
                 services
                     .AddOpenTelemetry()
@@ -122,12 +122,13 @@ namespace TestTemplate12.Api
                                     .CreateDefault()
                                     .AddService(serviceName: ApiAssemblyInfo.Value.GetName().Name))
                             .AddAspNetCoreInstrumentation()
+                            .AddHttpClientInstrumentation()
                             .AddEntityFrameworkCoreInstrumentation()
                             .AddSqlClientInstrumentation()
                             .AddSource("MassTransit")
                             .AddAzureMonitorTraceExporter(o =>
                             {
-                                o.ConnectionString = _configuration["ApplicationInsightsConnectionString"];
+                                o.ConnectionString = _configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
                             });
                     })
                     // Not supported by Application Insights yet.
