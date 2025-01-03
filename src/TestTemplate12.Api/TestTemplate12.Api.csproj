@@ -29,7 +29,6 @@
     <PackageReference Include="Serilog.Exceptions" />
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" />
     <PackageReference Include="SparkRoseDigital.Infrastructure" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
     <PackageReference Include="StyleCop.Analyzers">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
