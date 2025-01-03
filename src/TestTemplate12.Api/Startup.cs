@@ -115,6 +115,10 @@ namespace TestTemplate12.Api
                     .AddOpenTelemetry()
                     .WithTracing(tracerProviderBuilder =>
                     {
+                        if (_hostEnvironment.IsDevelopment())
+                        {
+                            tracerProviderBuilder.SetSampler<AlwaysOnSampler>();
+                        }
                         tracerProviderBuilder
                             .AddSource(ApiAssemblyInfo.Value.GetName().Name)
                             .SetResourceBuilder(
@@ -131,24 +135,25 @@ namespace TestTemplate12.Api
                                 o.ConnectionString = _configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
                             });
                     })
-                    // Not supported by Application Insights yet.
-                    //.WithMetrics(meterProviderBuilder =>
-                    //{
-                    //    meterProviderBuilder
-                    //        .SetResourceBuilder(
-                    //            ResourceBuilder
-                    //                .CreateDefault()
-                    //                .AddService(serviceName: "TestTemplate12"))
-                    //        .AddAspNetCoreInstrumentation()
-                    //        .AddAzureMonitorMetricExporter(o =>
-                    //        {
-                    //            //o.ConnectionString = "InstrumentationKey=f051d7dd-dbaf-450a-a6f1-9f78bc0f8c91";
-                    //            o.ConnectionString = "InstrumentationKey=f051d7dd-dbaf-450a-a6f1-9f78bc0f8c91;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/";
-                    //        })
-                    //        .AddConsoleExporter();
-                    //})
-                    //.StartWithHost()
-                    ;
+                    .WithMetrics(meterProviderBuilder =>
+                    {
+                        // Resource describing which Meters report on which metrics:
+                        // https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics
+                        // Reason you might want to refer to this resource is so you know what metrics to
+                        // look into when using Application Insights Metrics tab.
+                        meterProviderBuilder
+                            .SetResourceBuilder(
+                                ResourceBuilder
+                                    .CreateDefault()
+                                    .AddService(serviceName: ApiAssemblyInfo.Value.GetName().Name))
+                            .AddRuntimeInstrumentation()
+                            .AddAspNetCoreInstrumentation()
+                            .AddHttpClientInstrumentation()
+                            .AddAzureMonitorMetricExporter(o =>
+                            {
+                                o.ConnectionString = _configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+                            });
+                    });
             }
 
             services.AddAutoMapper(Assembly.GetExecutingAssembly(), typeof(Startup).Assembly);
