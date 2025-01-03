@@ -5,6 +5,8 @@ using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FluentValidation.AspNetCore;
 using MassTransit;
+using MassTransit.Logging;
+using MassTransit.Monitoring;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
@@ -18,7 +20,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -129,7 +130,7 @@ namespace TestTemplate12.Api
                             .AddHttpClientInstrumentation()
                             .AddEntityFrameworkCoreInstrumentation()
                             .AddSqlClientInstrumentation()
-                            .AddSource("MassTransit")
+                            .AddSource(DiagnosticHeaders.DefaultListenerName) // MassTransit ActivitySource
                             .AddAzureMonitorTraceExporter(o =>
                             {
                                 o.ConnectionString = _configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
@@ -149,6 +150,7 @@ namespace TestTemplate12.Api
                             .AddRuntimeInstrumentation()
                             .AddAspNetCoreInstrumentation()
                             .AddHttpClientInstrumentation()
+                            .AddMeter(InstrumentationOptions.MeterName) // MassTransit Meter: https://masstransit.io/documentation/configuration/observability
                             .AddAzureMonitorMetricExporter(o =>
                             {
                                 o.ConnectionString = _configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];

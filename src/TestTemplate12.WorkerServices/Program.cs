@@ -2,6 +2,8 @@ using System;
 using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using MassTransit;
+using MassTransit.Logging;
+using MassTransit.Monitoring;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -147,7 +149,7 @@ namespace TestTemplate12.WorkerServices
                                             .AddService(serviceName: WorkerAssemblyInfo.Value.GetName().Name))
                                     .AddEntityFrameworkCoreInstrumentation()
                                     .AddSqlClientInstrumentation()
-                                    .AddSource("MassTransit")
+                                    .AddSource(DiagnosticHeaders.DefaultListenerName) // MassTransit ActivitySource
                                     .AddAzureMonitorTraceExporter(o =>
                                     {
                                         o.ConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
@@ -165,6 +167,7 @@ namespace TestTemplate12.WorkerServices
                                             .CreateDefault()
                                             .AddService(serviceName: WorkerAssemblyInfo.Value.GetName().Name))
                                     .AddRuntimeInstrumentation()
+                                    .AddMeter(InstrumentationOptions.MeterName) // MassTransit Meter: https://masstransit.io/documentation/configuration/observability
                                     .AddAzureMonitorMetricExporter(o =>
                                     {
                                         o.ConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
