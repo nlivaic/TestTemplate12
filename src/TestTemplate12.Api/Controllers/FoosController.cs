@@ -2,11 +2,9 @@ using System;
 using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using TestTemplate12.Api.Helpers;
 using TestTemplate12.Application.Questions.Commands;
 using TestTemplate12.Application.Questions.Queries;
 
