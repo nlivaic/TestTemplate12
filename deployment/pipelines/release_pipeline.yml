@@ -104,6 +104,17 @@ jobs:
             powerShellErrorActionPreference: stop
 
         - task: AzureCLI@2
+          displayName: 'Sql Entra-Only Auth - Disable'
+          name: 'SqlEntraOnlyAuthDisable'
+          inputs:
+            azureSubscription: 'AzureConnection'
+            scriptType: pscore
+            scriptLocation: 'scriptPath'
+            scriptPath: './deployment/sqlEntraOnlyAuthDisable.ps1'
+            arguments: '$(provisionResourceGroup.resourceGroupName)'
+            powerShellErrorActionPreference: stop
+
+        - task: AzureCLI@2
           displayName: 'Provision Key Vault'
           name: 'provisionKeyVault'
           inputs:
