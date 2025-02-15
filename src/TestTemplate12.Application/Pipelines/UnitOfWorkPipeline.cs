@@ -6,6 +6,8 @@ using TestTemplate12.Common.Interfaces;
 namespace TestTemplate12.Application.Pipelines
 {
     public class UnitOfWorkPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : notnull
+
     {
         private readonly IUnitOfWork _uow;
 
@@ -16,8 +18,8 @@ namespace TestTemplate12.Application.Pipelines
 
         public async Task<TResponse> Handle(
             TRequest request,
-            CancellationToken cancellationToken,
-            RequestHandlerDelegate<TResponse> next)
+            RequestHandlerDelegate<TResponse> next,
+            CancellationToken cancellationToken)
         {
             var response = await next();
             await _uow.SaveAsync();

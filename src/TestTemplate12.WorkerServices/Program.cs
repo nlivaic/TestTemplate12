@@ -2,17 +2,17 @@ using System;
 using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using MassTransit;
+using MassTransit.Logging;
+using MassTransit.Monitoring;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 using SparkRoseDigital.Infrastructure.Caching;
-using SparkRoseDigital.Infrastructure.Logging;
 using TestTemplate12.Common.MessageBroker.Middlewares.ErrorLogging;
 using TestTemplate12.Common.MessageBroker.Middlewares.Tracing;
 using TestTemplate12.Core;
@@ -35,7 +35,6 @@ namespace TestTemplate12.WorkerServices
                 Log.Information("Starting up TestTemplate12 Worker Services.");
                 CreateHostBuilder(args)
                     .Build()
-                    .AddW3CTraceContextActivityLogging()
                     .Run();
             }
             catch (Exception ex)
@@ -59,11 +58,16 @@ namespace TestTemplate12.WorkerServices
                     var hostEnvironment = hostContext.HostingEnvironment;
                     services.AddDbContext<TestTemplate12DbContext>(options =>
                     {
-                        var connString = new SqlConnectionStringBuilder(configuration["TestTemplate12DbConnection"])
+                        var connString = new SqlConnectionStringBuilder(configuration["TestTemplate12DbConnection"]);
+                        if (hostEnvironment.IsDevelopment())
                         {
-                            UserID = configuration["DbUser"],
-                            Password = configuration["DbPassword"]
-                        };
+                            connString.UserID = configuration["DbUser"] ?? string.Empty;
+                            connString.Password = configuration["DbPassword"] ?? string.Empty;
+                        }
+                        else
+                        {
+                            connString.Authentication = SqlAuthenticationMethod.ActiveDirectoryManagedIdentity;
+                        }
                         options.UseSqlServer(connString.ConnectionString);
                         if (hostEnvironment.IsDevelopment())
                         {
@@ -145,27 +149,30 @@ namespace TestTemplate12.WorkerServices
                                             .AddService(serviceName: WorkerAssemblyInfo.Value.GetName().Name))
                                     .AddEntityFrameworkCoreInstrumentation()
                                     .AddSqlClientInstrumentation()
-                                    .AddSource("MassTransit")
+                                    .AddSource(DiagnosticHeaders.DefaultListenerName) // MassTransit ActivitySource
                                     .AddAzureMonitorTraceExporter(o =>
                                     {
                                         o.ConnectionString = configuration["ApplicationInsightsConnectionString"];
                                     });
-                            })//.WithMetrics(meterProviderBuilder =>
-                              //{
-                              //    meterProviderBuilder
-                              //        .SetResourceBuilder(
-                              //            ResourceBuilder
-                              //                .CreateDefault()
-                              //                .AddService(serviceName: "TestTemplate12"))
-                              //        .AddAspNetCoreInstrumentation()
-                              //        .AddAzureMonitorMetricExporter(o =>
-                              //        {
-                              //            //o.ConnectionString = "InstrumentationKey=f051d7dd-dbaf-450a-a6f1-9f78bc0f8c91";
-                              //            o.ConnectionString = "InstrumentationKey=f051d7dd-dbaf-450a-a6f1-9f78bc0f8c91;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/";
-                              //        })
-                              //        .AddConsoleExporter();
-                              //})
-                            .StartWithHost();
+                            })
+                            .WithMetrics(meterProviderBuilder =>
+                            {
+                                // Resource describing which Meters report on which metrics:
+                                // https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics
+                                // Reason you might want to refer to this resource is so you know what metrics to
+                                // look into when using Application Insights Metrics tab.
+                                meterProviderBuilder
+                                    .SetResourceBuilder(
+                                        ResourceBuilder
+                                            .CreateDefault()
+                                            .AddService(serviceName: WorkerAssemblyInfo.Value.GetName().Name))
+                                    .AddRuntimeInstrumentation()
+                                    .AddMeter(InstrumentationOptions.MeterName) // MassTransit Meter: https://masstransit.io/documentation/configuration/observability
+                                    .AddAzureMonitorMetricExporter(o =>
+                                    {
+                                        o.ConnectionString = configuration["ApplicationInsightsConnectionString"];
+                                    });
+                            });
                     }
                 });
     }
